@@ -37,7 +37,7 @@ class Proyectil_enemigo():
         match self.accion_kunai:
             case "Ataque_derecha":
                 self.mover_proyectil(self.velocidad)
-                self.animar_kunai(pantalla,self.kunai)
+                self.animar_kunai(pantalla, self.animaciones)
             case"Ataque_izquierda":
                 self.mover_proyectil(self.velocidad * -1)
                 self.animar_kunai(pantalla,  self.animaciones)

@@ -1,7 +1,7 @@
 import pygame
 import sys
 from pygame.locals import *
-from GUI_form_prueba import *
+from gui.GUI_form_prueba import FormPrueba
 
 pygame.init()
 

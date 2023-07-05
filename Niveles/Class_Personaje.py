@@ -1,6 +1,6 @@
 import pygame
 from Niveles.Configuraciones import reescalar_imagenes,obtener_rectangulos
-from Niveles.Proyectil import Proyectil
+from Niveles.Class_Proyectil import Proyectil
 class Personaje:
     def __init__ (self, tamaño, animaciones, posicion_inicial,velocidad):
         self.ancho = tamaño [0]

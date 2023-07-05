@@ -9,36 +9,34 @@ from gui.GUI_textbox import *
 from gui.GUI_widget import *
 from gui.GUI_form_menu_play import *
 from gui.GUI_form_menu_score import *
+from gui.GUI_form_configuraciones import *
 
 class FormPrueba(Form):
     def __init__(self, screen, x, y, W, H, background_color, border_color = "Black", border_size = -1, active = True):
         super().__init__(screen, x, y, W, H, background_color, border_color, border_size, active)
+
+        path_image = "Recursos/imagenes/Fondo_menu.png"       
+        aux_imagen = pygame.image.load(path_image)
+        aux_imagen = pygame.transform.scale(aux_imagen,(W,H))
         
-        self.volumen = 0.2
-        self.flag_play = True
-        
+        self._slave = aux_imagen
+
         pygame.mixer.init()
         
         #### CONTROLES
         
-        self.textbox = TextBox(self._slave, x, y, 50, 50, 130, 30, "Gray", "White", "Red", "Blue",2 , font = "Comic Sans", font_size = 15, font_color = "Black" )
-        self.btn_play = Button(self._slave, x, y, 100, 100, 100, 50, "Red", "Blue", self.btn_play_click, "Nombre", "Pause", font = "Verdana", font_size = 15, font_color = "White")
-        self.label_volume = Label(self._slave, 650, 190, 100, 50, "20%","Comics Sans",  15, "White","gui/Table.png")
-        self.slider_volumen = Slider(self._slave, x, y, 100, 200, 500, 15, self.volumen, "Grey", "Black")
-        self.btn_tabla = Button_Image(self._slave, x, y, 255, 100, 50, 50, "gui/Menu_BTN.png",self.btn_tabla_click, "lalal")
-        self.btn_jugar = Button_Image(self._slave, x, y, 300, 100, 50, 50, "Recursos/imagenes/play.png",self.btn_jugar_click, "lalal")
+        
+        self.btn_jugar = Button_Image(self._slave, x, y, W/2, H/2, 100, 100, "Recursos/imagenes/play.png",self.btn_jugar_click, "lalal")
+        self.btn_configuracion = Button_Image(self._slave, x, y, W/2,H/2 + 100, 100, 100, "Recursos/imagenes/config.png",self.btn_config, "lalal")
         
         #### Agregamos controles a la lista
-        self.lista_widgets.append(self.textbox)
-        self.lista_widgets.append(self.btn_play)
-        self.lista_widgets.append(self.label_volume)
-        self.lista_widgets.append(self.slider_volumen)
-        self.lista_widgets.append(self.btn_tabla)
+
         self.lista_widgets.append(self.btn_jugar)
+        self.lista_widgets.append(self.btn_configuracion)
         
         pygame.mixer.music.load("BORN TO OWN.mp3")
         
-        pygame.mixer.music.set_volume(self.volumen)
+        pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play(-1)
         
         self.render()
@@ -50,50 +48,45 @@ class FormPrueba(Form):
                 self.render()
                 for widget in self.lista_widgets:
                     widget.update(lista_eventos)
-                self.update_volumen(lista_eventos)
         else:
             self.hijo.update(lista_eventos)
-    
-    def render (self):
-        self._slave.fill(self._color_background)
 
-    def btn_play_click(self, texto):
-        if self.flag_play:
-            pygame.mixer.music.pause()
-            self.btn_play._color_background = "Cyan"
-            self.btn_play._font_color = "Red"
-            self.btn_play.set_text("Play")
-        else:
-            pygame.mixer.music.unpause()
-            self.btn_play._color_background = "Red"
-            self.btn_play._font_color = "White"
-            self.btn_play.set_text("Pause")
-            
-        self.flag_play = not self.flag_play
-        
+
     def btn_jugar_click(self,param):
         form_jugar = FormMenuPlay(screen = self._master,
         x = self._master.get_width() / 2 - 250,
         y = self._master.get_height() / 2 - 250,
         W = 500,
         H = 500,
-        background_color = (220,0,220),
-        border_color = (220,0,220),
+        background_color = "Black",
+        border_color = "Red",
         active = True,
-        path_image = "Recursos/imagenes/Fondo_menu.png")
+        path_image = "Recursos/imagenes/menu_play(2).jpg")
         self.show_dialog(form_jugar)
         
+
         
-    def update_volumen (self, lista_eventos): 
-        self.volumen = self.slider_volumen.value
-        self.label_volume.set_text(f"{round(self.volumen * 100)}%")
-        pygame.mixer.music.set_volume(self.volumen)
+    def btn_config (self,param):
+        from_configuraciones = FormMenuConfiguracion(screen = self._master,
+        x = self._master.get_width() / 2 - 500,
+        y = self._master.get_height() / 2 - 300,
+        W = 900,
+        H = 700,
+        background_color = "Black",
+        border_color = "Red",
+        border_size = 1, active = True)
+        self.show_dialog(from_configuraciones)
+        
+        
+    # def btn_tabla_click(self, texto):
     
-    def btn_tabla_click(self, texto):
-        dict_score = [{"Jugador" : "Gio", "Score": 1900},
-                    {"Jugador" : "Fausto", "Score": 900},
-                    {"Jugador" : "Gonza", "Score": 750},]
+    #     self.show_dialog(form_puntaje)
+    
+    
+    # def btn_tabla_click(self, texto):
+    #     dict_score = [{"Jugador" : "Gio", "Score": 1900},
+    #                 {"Jugador" : "Fausto", "Score": 900},
+    #                 {"Jugador" : "Gonza", "Score": 750},]
         
-        form_puntaje = FormMenuScore(self._master, 250, 25, 500, 550, (220,0,220),
-                                    "White", True, "gui/Window.png",dict_score,100,10,10)
-        self.show_dialog(form_puntaje)
+    #     form_puntaje = FormMenuScore(self._master, 250, 25, 500, 550, (220,0,220),
+    #                                 "White", True, "gui/Window.png",dict_score,100,10,10)

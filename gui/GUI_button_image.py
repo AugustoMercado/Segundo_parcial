@@ -28,9 +28,7 @@ class Button_Image(Widget):
         self.contador_click = 0
         
         self.render()
-        
-     
- 
+
     def render(self):
         image_text = self._font.render(self._text, True, self._font_color, self._color_background)
         

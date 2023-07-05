@@ -6,7 +6,7 @@ from Niveles.Personaje import *
 # from Niveles.Class_Personaje import Personaje
 
 class Proyectil():
-    def __init__(self,tamaño,posicion_inicial,velocidad):
+    def __init__(self,tamaño,velocidad):
         self.ancho = tamaño [0]
         self.alto = tamaño [1]
         self.movimiento = 0
@@ -16,8 +16,8 @@ class Proyectil():
         self.flecha_izq = Flecha_atras[0]
         
         rectangulo_proyectil =  self.flecha.get_rect()
-        rectangulo_proyectil.x = posicion_inicial[0]
-        rectangulo_proyectil.y =  posicion_inicial[1]
+        # rectangulo_proyectil.x = posicion_inicial[0]
+        # rectangulo_proyectil.y =  posicion_inicial[1]
         self.lados_proyectil = obtener_rectangulos(rectangulo_proyectil)
         # self.velocidad = velocidad
 
