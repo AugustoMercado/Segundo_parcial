@@ -14,27 +14,25 @@ class FormMenuConfiguracion(Form):
         self.volumen = 0.2
         self.flag_play = True
         pygame.mixer.init()
+        
 
         #### CONTROLES
-        self.btn_play = Button(self._slave, x, y, 100, 100, 100, 50, "Black", "Red", self.btn_play_click, "Nombre", "Pause", font = "Verdana", font_size = 15, font_color = "Red")
-        self.label_volume = Label(self._slave, 650, 190, 100, 50, "20%","Comics Sans",  15, "White","gui/Table.png")
-        self.slider_volumen = Slider(self._slave, x, y, 100, 200, 500, 15, self.volumen, "Red", "Black")
-        self._btn_home = Button_Image(self._slave, 
-                                    master_x = x, 
-                                    master_y = y, 
-                                    x = W-70, 
-                                    y = H-70, 
-                                    w = 50, 
-                                    h = 50, 
-                                    color_background = "Black", 
-                                    color_border = (255,0,255), 
-                                    onclick = self.btm_home_click, 
-                                    onclick_param = "",
-                                    text = "", 
-                                    font ="Verdana", 
-                                    font_size = 15, 
-                                    font_color= (0,255,0),
-                                    path_image= "gui/home.png")
+        self.btn_play = Button(self._slave, x, y, 100, 100, 100, 50, "Black", "Red",
+        self.btn_play_click, "Nombre", "Pause", font = "Verdana", font_size = 15, font_color = "Red")
+        
+        self.label_volume = Label(self._slave, 650, 190, 100, 50,
+        "20%","Comics Sans",  15, "White","Recursos/interfaz/3.png")
+
+        
+        self.slider_volumen = Slider(self._slave, x, y, 100, 200, 500, 15,
+        self.volumen, "Red", "Black")
+        self.slider_volumen_dos = Slider(self._slave, x, y, 100, 350, 500,
+        15, self.volumen, "Red", "Black")
+        
+        self._btn_home = Button_Image(self._slave, master_x = x, master_y = y, x = W-70, 
+        y = H-70, w = 50, h = 50, color_background = "Black", color_border = (255,0,255), 
+        onclick = self.btm_home_click, onclick_param = "",text = "", font ="Verdana", 
+        font_size = 15, font_color = (0,255,0), path_image= "Recursos/interfaz/1.png")
         
         #### Agregamos controles a la lista
         self.lista_widgets.append(self.btn_play)
@@ -78,6 +76,8 @@ class FormMenuConfiguracion(Form):
         self.volumen = self.slider_volumen.value
         self.label_volume.set_text(f"{round(self.volumen * 100)}%")
         pygame.mixer.music.set_volume(self.volumen)
+
+
         
     def btm_home_click(self,param):
         self.end_dialog()

@@ -12,12 +12,12 @@ RELOJ = pygame.time.Clock()
 PANTALLA = pygame.display.set_mode((W, H))
 
 # FONDO
-fondo = pygame.image.load("Recursos/imagenes/Fondo_menu.png")
+fondo = pygame.image.load("Recursos/imagenes/Fondo_menu_juego.png")
 fondo = pygame.transform.scale(fondo, (W, H))
 
 # nivel_actual = Nivel_uno(PANTALLA)
 # nivel_actual = Nivel_dos(PANTALLA) 
-# nivel_actual = Nivel_tres(PANTALLA)
+nivel_actual = Nivel_tres(PANTALLA)
 # nivel_actual.update(eventos)
 
 form_prueba = FormPrueba(PANTALLA, 0, 0 , W, H, "White", "Black", 5, True)
@@ -29,6 +29,12 @@ while True:
     for evento in eventos:
         if evento.type == pygame.QUIT:
             sys.exit(0)
+        if evento.type == pygame.MOUSEBUTTONDOWN:
+                    print(evento.pos)
 
-    form_prueba.update(eventos)  
+    nivel_actual.update(eventos)
+    # form_prueba.update(eventos)  
     pygame.display.update()
+
+
+

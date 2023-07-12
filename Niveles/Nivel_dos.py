@@ -1,5 +1,6 @@
 import pygame
 
+from Niveles.Nivel import  *
 from Niveles.Personaje import *
 from Niveles.Configuraciones import *
 from Niveles.Class_Personaje import *
@@ -7,7 +8,6 @@ from Niveles.Class_Plataforma import *
 from Niveles.Class_Plataforma_Trampa import *
 from Niveles.Class_Objeto import Objeto
 from Niveles.Class_Enemigo import *
-from Niveles.Nivel import  *
 from Niveles.Modo import *
 from Niveles.Enemigo import *
 from Niveles.Class_Proyectil import *

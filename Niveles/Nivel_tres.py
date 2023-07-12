@@ -81,9 +81,9 @@ class Nivel_tres(Nivel):
         posicion_inicial_boss = (W / 2, 750)
         animaciones_boss = {}
         animaciones_boss["Quieto"] =  boss_quieto
-        animaciones_boss["Quieto_izquierda"] =  boss_quieto_izquierda
-        animaciones_boss["Ataque_uno"] =  boss_ataque_uno
-        animaciones_boss["Ataque_uno_izquierda"] =  boss_ataque_uno_izquierda
+        animaciones_boss["Quieto izquierda"] =  boss_quieto_izquierda
+        animaciones_boss["Ataque"] =  boss_ataque_uno
+        animaciones_boss["Ataque_izquierda"] =  boss_ataque_uno_izquierda
         animaciones_boss["Muerte"] =  boss_daño
         mi_boss = Boss(tamaño,animaciones_boss,posicion_inicial_boss)
         ########################################################################################################

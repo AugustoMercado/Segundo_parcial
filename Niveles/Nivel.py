@@ -1,5 +1,6 @@
-import pygame, sys
+import json
 import random
+import pygame, sys
 from Niveles.Modo import *
 from Niveles.Boss import *
 from Niveles.Moneda import *
@@ -11,21 +12,26 @@ from Niveles.Class_Plataforma import *
 from Niveles.Class_Personaje import *
 from Niveles.Class_Proyectil_enemigo import *
 from Niveles.Class_Plataforma_Trampa import *
+from Niveles.Class_Puntaje import *
+from Niveles.Archivos_juegos import *
+from gui.GUI_form import *
+from gui.GUI_form_contenedor_nivel import *
 
 
 class Nivel:
-    def __init__(self,pantalla,personaje_principal,lista_plataforma,diccionario_plataformas,imagen_fondo,
-        lista_enemigos,lista_kunais,arrow_,lista_monedas,lista_items_a_recolectar_,lista_trampas=any,mi_boss=any,):
+    def __init__(self,pantalla,personaje_principal,lista_plataforma,diccionario_plataformas,
+        imagen_fondo, lista_enemigos,lista_kunais,arrow_,lista_monedas,
+        lista_items_a_recolectar_,lista_trampas=any,mi_boss=any,):
+        self.form = FormEndGame
+        self.contenedor =   FormContenedorNivel
         self._slave = pantalla
         self.jugador = personaje_principal
         self.posicion_actual_x = 0
         self.posicion_actual_y = 0
-
+        
         self.plataformas = lista_plataforma
         self.dicc_plataforma = diccionario_plataformas
-
         self.imagen_fondo = imagen_fondo
-        self.puntaje = 0
         self.tiempo = 0
         self.tiempo_limite = 60
 
@@ -46,7 +52,6 @@ class Nivel:
         self.contador_daño = 0
         self.contador_daño_enemigo = 0
         self.contador = 0
-        self.fuerza = 50
         self.accion_moneda = item_moneda
         self.lista_monedas = lista_monedas
         self.contador_pasos_objeto = 0
@@ -70,33 +75,50 @@ class Nivel:
         self.pocima_vida_tres = self.lista_items_a_recolectar_[3]
         self.lista_pocimas_vida.append(self.pocima_vida_tres)
 
+        self.stop_timer = False
+        self.paso_nivel = False
+        self.lista_jugadores = Traer_datos_en_base_de_datos()
+        self.player = self.lista_jugadores[-1]
+        self.puntaje = self.player["puntaje"]
+        self.fuerza =  self.player["fuerza"]
+        self.nivel_pass =  self.player["nivel"]
+        self.jugar = True 
+
+        
+        
         if self.lista_de_trampas != any:
             self.trampa_una = self.lista_de_trampas[0]
             self.trampa_dos = self.lista_de_trampas[1]
             self.trampa_tres = self.lista_de_trampas[2]
 
     def update(self, lista_eventos):
-        for evento in lista_eventos:
-            if evento.type == pygame.MOUSEBUTTONDOWN:
-                print(evento.pos)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_TAB:
-                cambiar_modo()
+        if self.jugar == True:
+            for evento in lista_eventos:
+                if evento.type == pygame.MOUSEBUTTONDOWN:
+                    print(evento.pos)
+                elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_TAB:
+                    cambiar_modo()
+            self.apretar_tecla()
+            self.actualizar_pantalla()
+            self.colision_moneda()
+            self.detectar_colision_Boss()
+            self.aparecer_pocimas_vida()
+            self.detectar_colision_pocima_fuerza()
+            self.detectar_colision_pocima_vida()
+            self.detectar_colision_enemigo()
+            self.detectar_colisicion_flecha()
+            self.detectar_colision_trampa()
+            self.actualizar_pantalla_daño()
+            self.aparecer_pocimas_vida()
+            self.actualizar_uhi()
+            self.timer()
+            self.End_game()
+        else:
+            if self.jugar == False:
+                self.form_game = self.Mostrar_info(self.puntaje)
+                self.form_game.update(lista_eventos)
+                
 
-        self.apretar_tecla()
-        self.actualizar_pantalla()
-        self.colision_moneda()
-        self.detectar_colision_Boss()
-        self.aparecer_pocimas_vida()
-        self.detectar_colision_pocima_fuerza()
-        self.detectar_colision_pocima_vida()
-        self.detectar_colision_enemigo()
-        self.detectar_colisicion_flecha()
-        self.detectar_colision_trampa()
-        self.actualizar_pantalla_daño()
-        self.aparecer_pocimas_vida()
-        self.actualizar_uhi()
-        self.timer()
-        self.End_game()
 
     def reiniciar_nivel(self):
         self.__init__(self._slave)
@@ -119,8 +141,8 @@ class Nivel:
 
         if self.boss != any:
             self.teletransportar_boss()
-            self.boss.update_boss(self._slave, self.dicc_plataforma)
             self.actualizar_pantalla_daño_boss()
+            self.boss.update_boss(self._slave, self.dicc_plataforma)
         self.flecha.update_proyectil(self._slave)
         self.jugador.update(self._slave, self.dicc_plataforma)
 
@@ -128,10 +150,8 @@ class Nivel:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RIGHT]:
             self.jugador.accion = "Derecha"
-        elif (
-            keys[pygame.K_LEFT]
-            and self.jugador.lados["main"].x > 0 - self.jugador.velocidad
-        ):
+        elif (keys[pygame.K_LEFT]
+            and self.jugador.lados["main"].x > 0 - self.jugador.velocidad):
             self.jugador.accion = "Izquierda"
         elif keys[pygame.K_UP]:
             self.jugador.accion = "Salta"
@@ -155,8 +175,6 @@ class Nivel:
                 self.atacar()
         elif keys[pygame.K_r]:
             self.reiniciar_nivel()
-        elif keys[pygame.K_ESCAPE]:
-            pygame.quit()
         else:
             if self.jugador.accion == "izquierda":
                 self.jugador.accion = "Quieto izquierda"
@@ -166,8 +184,7 @@ class Nivel:
     def detectar_colision_trampa(self):
         if self.lista_de_trampas != any:
             if self.jugador.lados["main"].colliderect(
-                self.trampa_una.lados_plataforma_trampa["top"]
-            ):
+                self.trampa_una.lados_plataforma_trampa["top"]):
                 if self.activar_trampa_una == 30:
                     self.trampa_una.accion_trampa = "Ataque"
                     self.contador_daño += 1
@@ -178,8 +195,7 @@ class Nivel:
                 self.trampa_una.accion_trampa = "Quieto"
 
             if self.jugador.lados["main"].colliderect(
-                self.trampa_dos.lados_plataforma_trampa["top"]
-            ):
+                self.trampa_dos.lados_plataforma_trampa["top"]):
                 if self.activar_trampa_dos == 30:
                     self.trampa_dos.accion_trampa = "Ataque"
                     self.contador_daño += 1
@@ -190,8 +206,7 @@ class Nivel:
                 self.trampa_dos.accion_trampa = "Quieto"
 
             if self.jugador.lados["main"].colliderect(
-                self.trampa_tres.lados_plataforma_trampa["top"]
-            ):
+                self.trampa_tres.lados_plataforma_trampa["top"]):
                 if self.activar_trampa_tres == 30:
                     self.trampa_tres.accion_trampa = "Ataque"
                     self.contador_daño += 1
@@ -213,13 +228,13 @@ class Nivel:
             self.fuerza += 100
 
     def aparecer_pocimas_vida(self):
-        if self.contador_daño > 0:
+        if self.contador_daño >= 1:
             for pocima in self.lista_pocimas_vida:
                 pocima.draw(self._slave)
 
     def detectar_colision_pocima_vida(self):
         for pocima in self.lista_pocimas_vida:
-            if self.contador_daño > 0:
+            if self.contador_daño >= 1:
                 if self.jugador.lados["main"].colliderect(pocima.lados_objeto["main"]):
                     pygame.mixer.init()
                     sonido_recolectar = pygame.mixer.Sound("Recursos/Sonidos/recolectar.mp3")
@@ -277,11 +292,11 @@ class Nivel:
 
     def detectar_colision_Boss(self):
         if self.boss != any:
-            if self.muerte_boss == False:
+            if self.boss.boss_muerto == False:
                 if self.boss.lados_boss["main"].x > self.jugador.lados["main"].x:
                     if self.boss.lados_vision_boss["main"].colliderect(
                         self.jugador.lados["main"]):
-                        self.boss.accion_boss = "Ataque_uno_izquierda"
+                        self.boss.accion_boss = "Ataque izquierda"
                         self.jugador.accion = "Daño"
                         self.contador_daño += 0.2
                     else:
@@ -290,7 +305,7 @@ class Nivel:
                 elif self.boss.lados_boss["main"].x < self.jugador.lados["main"].x:
                     if self.boss.lados_vision_boss["main"].colliderect(
                         self.jugador.lados["main"]):
-                        self.boss.accion_boss = "Ataque_uno"
+                        self.boss.accion_boss = "Ataque derecha"
                         self.jugador.accion = "Daño"
                         self.contador_daño += 0.1
                     else:
@@ -299,6 +314,9 @@ class Nivel:
                 if self.contador_daño_boss == 12:
                     self.puntaje += 1000
                     self.boss.accion_boss = " "
+                    if self.boss.boss_muerto == True:
+                        self.boss.desplazamiento_y = 150
+                    self.contador_daño_boss +=1
 
     def atacar(self):
         if self.mover_flecha_derecha == True:
@@ -333,7 +351,7 @@ class Nivel:
             self.detectar_coliccion_kunai(kunai, enemigo)
 
     def teletransportar_boss(self):
-        if self.muerte_boss != True:
+        if self.boss.boss_muerto != True:
             if self.contador == 10:
                 self.teletransporte += 1
                 if self.teletransporte == 10:
@@ -347,19 +365,20 @@ class Nivel:
         elif self.flecha.lados_proyectil["main"].x < 0:
             self.desaparecer_flecha()
         elif self.boss != any:
-            if self.flecha.lados_proyectil["main"].colliderect(
-                self.boss.lados_boss["main"]):
-                if self.fuerza > 100:
-                    self.contador_daño_boss += 2
-                else:
-                    self.contador_daño_boss += 1
-                self.boss.accion_boss = "Muerte"
-                self.desaparecer_flecha()
-                pygame.mixer.init()
-                sonido_recolectar = pygame.mixer.Sound(
-                "Recursos/Sonidos/Flecha_hit.wav")
-                sonido_recolectar.set_volume(0.1)
-                sonido_recolectar.play()
+            if self.boss.boss_muerto != True:
+                if self.flecha.lados_proyectil["main"].colliderect(
+                    self.boss.lados_boss["main"]):
+                    if self.fuerza > 100:
+                        self.contador_daño_boss += 2
+                    else:
+                        self.contador_daño_boss += 1
+                    self.boss.accion_boss = "Muerte"
+                    self.desaparecer_flecha()
+                    pygame.mixer.init()
+                    sonido_recolectar = pygame.mixer.Sound(
+                    "Recursos/Sonidos/Flecha_hit.wav")
+                    sonido_recolectar.set_volume(0.1)
+                    sonido_recolectar.play()
 
         for enemigo in self.lista_enemigos:
             if enemigo.muerto != True:
@@ -417,57 +436,78 @@ class Nivel:
 
 
     def End_game(self):
-        if self.jugador.lados["main"].x > self._slave.get_width() + 100:
+        if self.jugador.lados["main"].x > self._slave.get_width():
+            self.stop_timer = True
             self.puntaje += self.tiempo_limite
-            pygame.quit()
+            self.jugar = False    
+            self.paso_nivel = True
+            self.nivel_pass += 1
+            self.player["puntaje"] = self.puntaje 
+            self.player["fuerza"] = self.fuerza
+            self.player["nivel"] = self.nivel_pass
+            self.puntaje = Update_datos_base_de_datos(self.player["puntaje"],
+            self.player["fuerza"],self.player["nivel"],self.player["nombre"])
         elif (self.jugador.lados["main"].y > self._slave.get_height() + 100
-            or self.contador_daño == 5):
-            self.reiniciar_nivel()
+            or self.contador_daño > 3):
+            self.paso_nivel = False
+            self.jugar = False    
+            
+
+    def Mostrar_info (self,puntaje):
+        if self.jugar == False:
+            self.puntaje = 0
+            self.puntaje = self.puntaje + puntaje
+            self.form_game = FormEndGame(self._slave,
+            paso_nivel = self.paso_nivel,
+            score = self.puntaje)
+        return self.form_game
+                    
 
     def timer(self):
         self.contador += 1
-        if self.contador == 15:
-            if self.tiempo != self.tiempo_limite:
-                self.tiempo_limite -= 1
-                self.contador = 0
-            else:
-                self.tiempo_limite = 0
-                self.reiniciar_nivel()
+        if self.stop_timer != True:
+            if self.contador == 15:
+                if self.tiempo != self.tiempo_limite:
+                    self.tiempo_limite -= 1
+                    self.contador = 0
+                else:
+                    self.tiempo_limite = 0
+                    self.reiniciar_nivel()
                 
     def actualizar_pantalla_daño(self):
-        if self.contador_daño >= 0 or self.contador_daño == 1:
+        if self.contador_daño == 0 and self.contador_daño == 0.5 or self.contador_daño <= 1:
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (80, 20))
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (180, 20))
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (280, 20))
-        elif self.contador_daño <= 1.5 or self.contador_daño == 2:
+        elif self.contador_daño == 1 and self.contador_daño == 1.5 or self.contador_daño <= 1:
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida,
                                                     (80, 80)), (80, 20))
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (180, 20))
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (280, 20))
-        elif self.contador_daño <= 2.5 or self.contador_daño == 3:
+        elif self.contador_daño == 2 and self.contador_daño == 2.5 or self.contador_daño <= 3:
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida,
                                                     (80, 80)), (80, 20))
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida,
                                                     (80, 80)), (180, 20))
             self._slave.blit(pygame.transform.scale(personaje_vida,
                                                     (80, 80)), (280, 20))
-        elif self.contador_daño <= 3.5 or self.contador_daño > 4:
+        elif self.contador_daño > 3:
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida, 
                                                     (80, 80)), (80, 20))
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida, 
                                                     (80, 80)), (180, 20))
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida, 
                                                     (80, 80)), (280, 20))
-            self.reiniciar_nivel()
+    
 
     def actualizar_pantalla_daño_boss(self):
         self.muerte_boos = False
-        if self.contador_daño_boss <= 1:
+        if self.contador_daño_boss == 0 and self.contador_daño_boss == 0.5 or self.contador_daño_boss <= 1:
             self._slave.blit(pygame.transform.scale(vida_boos, (80, 80)), (1000, 100))
             self._slave.blit(pygame.transform.scale(vida_boos, (80, 80)), (1100, 100))
             self._slave.blit(pygame.transform.scale(vida_boos, (80, 80)), (1200, 100))
@@ -527,8 +567,8 @@ class Nivel:
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida,
                                                     (80, 80)), (1400, 100))
             self._slave.blit(pygame.transform.scale(personaje_menos_una_vida,
-                                                    (80, 80)), (280, 20))
-            self.muerte_boos = True
+                                                    (80, 80)), (1400, 100))
+            self.boss.boss_muerto = True
 
     def actualizar_uhi(self):
         tiempo = self.fuente.render(
@@ -544,6 +584,7 @@ class Nivel:
         self._slave.blit(score, (self._slave.get_width() / 2 + 400, 10))
         self._slave.blit(stronght, (self._slave.get_width() / 2 + 400, 50))
 
+    
     # def dibujar_rectangulos(self):
     #     if get_modo():
     #         for lado in self.jugador.lados:

@@ -25,17 +25,6 @@ boss_ataque_uno = [
     pygame.image.load("Recursos/Boss/8.png"),
 ]
 
-boss_ataque_dos = [
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/7.png"),
-    pygame.image.load("Recursos/Boss/4.png"),
-    pygame.image.load("Recursos/Boss/4.png"),
-]
-
 
 
 boss_daño = [
@@ -46,5 +35,4 @@ boss_daño = [
 
 boss_quieto_izquierda = girar_imagen(boss_quieto,True,False)
 boss_ataque_uno_izquierda = girar_imagen(boss_ataque_uno,True,False)
-boss_ataque_dos_izquierda = girar_imagen(boss_ataque_dos,True,False)
-boss_daño_izquierda = girar_imagen(boss_daño, True, False)
+
